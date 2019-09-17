@@ -2,11 +2,13 @@ package user
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/spf13/viper"
+	"github.com/go-chi/jwtauth"
+	config "github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
+
+var TokenAuth *jwtauth.JWTAuth
 
 type User struct {
 	ID           rune   `json:"id"`
@@ -17,15 +19,19 @@ type User struct {
 	PasswordHash string `json:"-"`
 }
 
-func (u *User) GenToken() string {
-	jwtToken := jwt.New(jwt.GetSigningMethod("HS256"))
-	jwtToken.Claims = jwt.MapClaims{
+func init() {
+	TokenAuth = jwtauth.New("HS256", []byte(config.GetString("secret")), nil)
+}
+
+func (u *User) GenToken() (string, error) {
+	_, token, err := TokenAuth.Encode(jwtauth.Claims{
 		"id":  u.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"exp": time.Now().Add(time.Hour * 48).Unix(),
+	})
+	if err != nil {
+		return "", err
 	}
-	secretKey := viper.GetString("secretKey")
-	token, _ := jwtToken.SignedString([]byte(secretKey))
-	return token
+	return token, nil
 }
 
 func (u *User) CheckPassword(password string) error {
@@ -38,8 +44,7 @@ func (u *User) SetPassword(password string) error {
 	if len(password) == 0 {
 		return errors.New("password should not be empty")
 	}
-	bytePassword := []byte(password)
-	passwordHash, _ := bcrypt.GenerateFromPassword(bytePassword, 2)
+	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(password), 2)
 	u.PasswordHash = string(passwordHash)
 	return nil
 }

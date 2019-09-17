@@ -1,0 +1,11 @@
+server:
+  host: ''
+  port: '8080'
+
+database:
+  name: 'zashat'
+  user: 'zashat'
+  password: 'zashat'
+  port: '5432'
+
+secret: 'SUPER_SECRET_KEY'

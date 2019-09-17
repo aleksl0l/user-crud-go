@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS "user"
     first_name    TEXT,
     middle_name   TEXT,
     last_name     TEXT,
-    username      TEXT NOT NULL,
+    username      TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL
 );
